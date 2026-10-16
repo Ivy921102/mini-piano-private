@@ -6,24 +6,26 @@
   <title>迷你鋼琴</title>
   <style>
     :root {
-      --bg-gradient: linear-gradient(135deg, #FFE8E8 0%, #F5E8FF 50%, #EDE8F5 100%);
-      --card-bg: rgba(255, 255, 255, 0.85);
-      --card-border: rgba(255, 255, 255, 0.9);
+      --bg-gradient: linear-gradient(135deg, rgba(255, 232, 232, 0.88) 0%, rgba(245, 232, 255, 0.85) 50%, rgba(237, 232, 245, 0.88) 100%);
+      --card-bg: rgba(255, 255, 255, 0.82);
+      --card-border: rgba(255, 255, 255, 0.92);
       --text-main: #4A4453;
       --text-sub: #7A7285;
-      --btn-bg: rgba(255, 255, 255, 0.9);
-      --btn-border: rgba(210, 195, 225, 0.6);
+      --btn-bg: rgba(255, 255, 255, 0.88);
+      --btn-border: rgba(210, 195, 225, 0.65);
       --primary: #FF758C;
       --primary-hover: #FF5E7E;
-      --white-key-bg: #FFFFFF;
+      --white-key-bg: rgba(255, 255, 255, 0.96);
       --white-key-border: #DDD8D5;
       --black-key-bg: #2B2830;
       --highlight-white: #FFE4ED;
       --highlight-white-border: #FF758C;
       --highlight-black: #D291BC;
-      --shadow-card: 0 16px 40px rgba(130, 110, 150, 0.18);
-      --key-glow-white: rgba(255, 117, 140, 0.65);
-      --key-glow-black: rgba(210, 145, 188, 0.9);
+      --shadow-card: 0 16px 40px rgba(130, 110, 150, 0.22);
+      --key-glow-white: rgba(255, 117, 140, 0.7);
+      --key-glow-black: rgba(210, 145, 188, 0.95);
+      --bg-image-opacity: 0.38;
+      --bg-blur: 1px;
     }
 
     * {
@@ -44,50 +46,85 @@
       align-items: center;
       justify-content: center;
       padding: 12px;
-      background: var(--bg-gradient);
-      background-attachment: fixed;
       color: var(--text-main);
-      transition: background 0.4s ease, color 0.3s ease;
+      transition: color 0.3s ease;
       position: relative;
       overflow-x: hidden;
       touch-action: manipulation;
+      background-color: #12131C;
     }
 
-    /* 頂部柔光球 */
+    /* =========================================
+       大型全螢幕背景圖層 (Big Background Image Layer)
+       ========================================= */
+    .hero-bg-layer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      background-image: url('assets/sky.png');
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+      z-index: 0;
+      opacity: var(--bg-image-opacity);
+      filter: blur(var(--bg-blur));
+      transform: scale(1.03);
+      transition: opacity 0.5s ease, filter 0.5s ease, background-image 0.5s ease;
+      pointer-events: none;
+    }
+
+    /* 漸層柔光遮罩疊加層 */
+    .hero-bg-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      background: var(--bg-gradient);
+      z-index: 1;
+      pointer-events: none;
+      transition: background 0.4s ease;
+    }
+
+    /* 頂部柔焦氛圍球 */
     .glow-sphere {
       position: fixed;
       border-radius: 50%;
-      filter: blur(80px);
-      z-index: 0;
+      filter: blur(90px);
+      z-index: 2;
       pointer-events: none;
-      opacity: 0.55;
+      opacity: 0.5;
     }
     .glow-1 {
-      width: 400px;
-      height: 400px;
-      background: rgba(255, 180, 200, 0.7);
-      top: -100px;
-      left: -100px;
+      width: 420px;
+      height: 420px;
+      background: rgba(255, 180, 200, 0.65);
+      top: -120px;
+      left: -120px;
     }
     .glow-2 {
-      width: 450px;
-      height: 450px;
-      background: rgba(190, 170, 255, 0.7);
-      bottom: -120px;
-      right: -120px;
+      width: 460px;
+      height: 460px;
+      background: rgba(190, 170, 255, 0.65);
+      bottom: -130px;
+      right: -130px;
     }
 
-    /* 主卡片容器 */
+    /* 主卡片容器：高質感半透明毛玻璃，透出背景大圖 */
     .piano-app {
       position: relative;
-      z-index: 1;
+      z-index: 3;
       width: 100%;
       max-width: 1350px;
       background: var(--card-bg);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
       border: 1px solid var(--card-border);
-      border-radius: 24px;
+      border-radius: 26px;
       box-shadow: var(--shadow-card);
       padding: 16px 22px;
       display: flex;
@@ -125,14 +162,14 @@
       gap: 12px;
     }
 
-    /* 貼紙 1：仰望星空沈星回 Logo */
+    /* 標題旁頭像徽章 */
     .title-logo-sticker {
       width: 52px;
       height: 52px;
       object-fit: cover;
       border-radius: 50%;
       border: 2px solid #FFFFFF;
-      box-shadow: 0 4px 12px rgba(160, 130, 190, 0.28);
+      box-shadow: 0 4px 14px rgba(160, 130, 190, 0.32);
       cursor: pointer;
       transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
@@ -151,7 +188,7 @@
 
     .status-badge {
       font-size: 0.78rem;
-      background: rgba(255, 255, 255, 0.8);
+      background: rgba(255, 255, 255, 0.85);
       color: var(--text-main);
       border: 1px solid var(--btn-border);
       padding: 3px 10px;
@@ -270,50 +307,50 @@
       border-radius: 50%;
     }
 
-    /* 貼紙 2：控制列右側伴彈墨鏡沈星回 */
+    /* 控制面板右側：伴彈墨鏡沈星回貼紙 */
     .side-sticker-sunglasses {
       width: 48px;
       height: auto;
       cursor: pointer;
-      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.12));
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
       transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     .side-sticker-sunglasses:hover {
       transform: scale(1.25) rotate(6deg);
     }
 
-    /* 鋼琴自適應容器與角落貼紙 */
+    /* 鋼琴本體容器與裝飾貼紙 */
     .piano-box-wrapper {
       position: relative;
       width: 100%;
     }
 
-    /* 貼紙 3：右上角 勿忘我花束 */
+    /* 右上角：勿忘我花束貼紙 */
     .corner-sticker-flower {
       position: absolute;
       top: -24px;
       right: -10px;
-      width: 72px;
+      width: 74px;
       height: auto;
       z-index: 10;
       cursor: pointer;
-      filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.18));
+      filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.22));
       transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     .corner-sticker-flower:hover {
       transform: scale(1.22) rotate(12deg);
     }
 
-    /* 貼紙 4：左下角 兔球球 */
+    /* 左下角：兔球球貼紙 */
     .corner-sticker-rabbit {
       position: absolute;
       bottom: -16px;
       left: -12px;
-      width: 64px;
+      width: 66px;
       height: auto;
       z-index: 10;
       cursor: pointer;
-      filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.18));
+      filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.22));
       transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     .corner-sticker-rabbit:hover {
@@ -322,10 +359,11 @@
 
     .piano-box {
       width: 100%;
-      background: #232128;
+      background: rgba(35, 33, 40, 0.94);
+      backdrop-filter: blur(12px);
       border-radius: 18px;
       padding: 8px 10px 12px 10px;
-      box-shadow: 0 12px 34px rgba(25, 20, 35, 0.35);
+      box-shadow: 0 14px 38px rgba(20, 15, 30, 0.42);
       position: relative;
       overflow-x: auto;
       overflow-y: hidden;
@@ -387,7 +425,7 @@
       border-radius: 0 0 8px 8px;
       margin: 0 1px;
       z-index: 1;
-      box-shadow: 0 3px 5px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
     }
 
     .black-key {
@@ -397,7 +435,7 @@
       background: var(--black-key-bg);
       border-radius: 0 0 6px 6px;
       z-index: 2;
-      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.45);
     }
 
     .key-label {
@@ -435,14 +473,14 @@
       background: linear-gradient(to bottom, #FFFFFF 20%, var(--highlight-white) 100%) !important;
       transform: translateY(3px);
       border-color: var(--highlight-white-border) !important;
-      box-shadow: 0 2px 14px var(--key-glow-white), inset 0 -3px 8px var(--key-glow-white) !important;
+      box-shadow: 0 2px 16px var(--key-glow-white), inset 0 -3px 8px var(--key-glow-white) !important;
     }
 
     .enable-feedback .black-key.active,
     .black-key.auto-highlight {
       background: linear-gradient(to bottom, #3E3848 0%, var(--highlight-black) 100%) !important;
       transform: translateY(2px);
-      box-shadow: 0 0 16px var(--key-glow-black), 0 3px 6px rgba(0,0,0,0.45) !important;
+      box-shadow: 0 0 18px var(--key-glow-black), 0 3px 6px rgba(0,0,0,0.45) !important;
     }
 
     #videoCanvas {
@@ -461,7 +499,7 @@
     }
 
     .kbd-tag {
-      background: rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.8);
       padding: 1px 5px;
       border-radius: 4px;
       font-family: monospace;
@@ -469,13 +507,14 @@
       border: 1px solid var(--btn-border);
     }
 
+    /* RWD 適應手機與平板 */
     @media (max-width: 768px) {
       body {
         padding: 6px;
       }
       .piano-app {
         padding: 12px 14px;
-        border-radius: 16px;
+        border-radius: 18px;
         gap: 10px;
       }
       h1 {
@@ -486,7 +525,7 @@
         height: 42px;
       }
       .corner-sticker-flower {
-        width: 50px;
+        width: 52px;
         top: -18px;
         right: -6px;
       }
@@ -507,6 +546,13 @@
 </head>
 <body>
 
+  <!-- 全螢幕超大背景圖層 (Big Fullscreen Hero Image) -->
+  <div class="hero-bg-layer" id="heroBg"></div>
+
+  <!-- 柔和遮罩層 -->
+  <div class="hero-bg-overlay" id="heroOverlay"></div>
+
+  <!-- 頂部柔焦氛圍光暈 -->
   <div class="glow-sphere glow-1" id="glow1"></div>
   <div class="glow-sphere glow-2" id="glow2"></div>
 
@@ -516,13 +562,14 @@
   <div class="piano-app" id="pianoApp">
     <header>
       <div class="title-area">
-        <!-- 貼紙 1：仰望星空沈星回 Logo -->
+        <!-- 貼紙 1：仰望星空 沈星回 Logo -->
         <img src="assets/sky.png" class="title-logo-sticker" alt="仰望星空沈星回" title="沈星回：與你一起看見更大的世界" />
         <h1>🎹 迷你鋼琴</h1>
         <div id="statusBadge" class="status-badge">✨ 準備就緒</div>
       </div>
 
       <div class="btn-group">
+        <button id="toggleBgBtn">🖼️ 背景圖：透光 (38%)</button>
         <button id="fullscreenBtn">⛶ 全螢幕模式</button>
       </div>
     </header>
@@ -543,7 +590,7 @@
           </label>
         </div>
 
-        <!-- 貼紙 2：工具列右側伴彈墨鏡沈星回貼紙 -->
+        <!-- 貼紙 2：控制列右側伴彈墨鏡沈星回貼紙 -->
         <div class="btn-group">
           <img src="assets/sunglasses.png" class="side-sticker-sunglasses" alt="墨鏡沈星回" title="沈星回：交給我吧！" />
         </div>
@@ -608,7 +655,7 @@
     </div>
 
     <footer>
-      <div>💡 點擊沈星回貼紙會搖晃彈跳！支援手機/平板觸控、筆電與鍵盤彈奏</div>
+      <div>💡 背景大幅呈現沈星回星空；點擊貼紙會搖晃彈跳！支援手機/平板觸控、筆電與鍵盤彈奏</div>
       <div>
         低八度：<span class="kbd-tag">A S D F G H J</span> / <span class="kbd-tag">W E T Y U</span>
         | 高八度：<span class="kbd-tag">K L ; ' Z X C V</span> / <span class="kbd-tag">O P [ ] \</span>
@@ -930,23 +977,24 @@
     });
 
     /* ========================================================
-       5. 主題配色與智慧亮度對比演算法
+       5. 主題配色與背景圖透明度調節
        ======================================================== */
     const THEMES = {
       pastel: {
-        bg: 'linear-gradient(135deg, #FFE8E8 0%, #F5E8FF 50%, #EDE8F5 100%)',
+        bg: 'linear-gradient(135deg, rgba(255, 232, 232, 0.88) 0%, rgba(245, 232, 255, 0.85) 50%, rgba(237, 232, 245, 0.88) 100%)',
         card: 'rgba(255, 255, 255, 0.85)',
-        border: 'rgba(255, 255, 255, 0.9)',
+        border: 'rgba(255, 255, 255, 0.92)',
         textMain: '#4A4453',
         textSub: '#7A7285',
-        btnBg: 'rgba(255, 255, 255, 0.9)',
-        btnBorder: 'rgba(210, 195, 225, 0.6)',
+        btnBg: 'rgba(255, 255, 255, 0.88)',
+        btnBorder: 'rgba(210, 195, 225, 0.65)',
         primary: '#FF758C',
-        glow1: 'rgba(255, 180, 200, 0.7)',
-        glow2: 'rgba(190, 170, 255, 0.7)'
+        glow1: 'rgba(255, 180, 200, 0.65)',
+        glow2: 'rgba(190, 170, 255, 0.65)',
+        bgOpacity: '0.38'
       },
       dark: {
-        bg: 'linear-gradient(135deg, #12131C 0%, #1A1C29 50%, #0F1016 100%)',
+        bg: 'linear-gradient(135deg, rgba(18, 19, 28, 0.85) 0%, rgba(26, 28, 41, 0.82) 50%, rgba(15, 16, 22, 0.85) 100%)',
         card: 'rgba(26, 28, 42, 0.88)',
         border: 'rgba(60, 65, 95, 0.8)',
         textMain: '#F0F4F8',
@@ -955,43 +1003,47 @@
         btnBorder: 'rgba(70, 78, 115, 0.7)',
         primary: '#00F2FE',
         glow1: 'rgba(0, 242, 254, 0.25)',
-        glow2: 'rgba(79, 172, 254, 0.25)'
+        glow2: 'rgba(79, 172, 254, 0.25)',
+        bgOpacity: '0.45'
       },
       mint: {
-        bg: 'linear-gradient(135deg, #E8F5E9 0%, #E0F2F1 50%, #C8E6C9 100%)',
-        card: 'rgba(255, 255, 255, 0.82)',
-        border: 'rgba(255, 255, 255, 0.9)',
+        bg: 'linear-gradient(135deg, rgba(232, 245, 233, 0.88) 0%, rgba(224, 242, 241, 0.85) 50%, rgba(200, 230, 201, 0.88) 100%)',
+        card: 'rgba(255, 255, 255, 0.85)',
+        border: 'rgba(255, 255, 255, 0.92)',
         textMain: '#2E4633',
         textSub: '#58745E',
-        btnBg: 'rgba(255, 255, 255, 0.9)',
+        btnBg: 'rgba(255, 255, 255, 0.88)',
         btnBorder: 'rgba(180, 215, 190, 0.7)',
         primary: '#43A047',
         glow1: 'rgba(165, 214, 167, 0.6)',
-        glow2: 'rgba(128, 203, 196, 0.6)'
+        glow2: 'rgba(128, 203, 196, 0.6)',
+        bgOpacity: '0.35'
       },
       sunset: {
-        bg: 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 50%, #FFCC80 100%)',
-        card: 'rgba(255, 255, 255, 0.82)',
-        border: 'rgba(255, 255, 255, 0.9)',
+        bg: 'linear-gradient(135deg, rgba(255, 243, 224, 0.88) 0%, rgba(255, 224, 178, 0.85) 50%, rgba(255, 204, 128, 0.88) 100%)',
+        card: 'rgba(255, 255, 255, 0.85)',
+        border: 'rgba(255, 255, 255, 0.92)',
         textMain: '#4E342E',
         textSub: '#7D5C53',
-        btnBg: 'rgba(255, 255, 255, 0.9)',
+        btnBg: 'rgba(255, 255, 255, 0.88)',
         btnBorder: 'rgba(255, 204, 128, 0.7)',
         primary: '#FB8C00',
         glow1: 'rgba(255, 183, 77, 0.6)',
-        glow2: 'rgba(255, 138, 101, 0.6)'
+        glow2: 'rgba(255, 138, 101, 0.6)',
+        bgOpacity: '0.35'
       },
       ocean: {
-        bg: 'linear-gradient(135deg, #E1F5FE 0%, #B3E5FC 50%, #81D4FA 100%)',
-        card: 'rgba(255, 255, 255, 0.82)',
-        border: 'rgba(255, 255, 255, 0.9)',
+        bg: 'linear-gradient(135deg, rgba(225, 245, 254, 0.88) 0%, rgba(179, 229, 252, 0.85) 50%, rgba(129, 212, 250, 0.88) 100%)',
+        card: 'rgba(255, 255, 255, 0.85)',
+        border: 'rgba(255, 255, 255, 0.92)',
         textMain: '#1A3B5C',
         textSub: '#486E94',
-        btnBg: 'rgba(255, 255, 255, 0.9)',
+        btnBg: 'rgba(255, 255, 255, 0.88)',
         btnBorder: 'rgba(129, 212, 250, 0.7)',
         primary: '#0288D1',
         glow1: 'rgba(79, 195, 247, 0.6)',
-        glow2: 'rgba(100, 181, 246, 0.6)'
+        glow2: 'rgba(100, 181, 246, 0.6)',
+        bgOpacity: '0.40'
       }
     };
 
@@ -1005,6 +1057,7 @@
       root.style.setProperty('--btn-bg', theme.btnBg);
       root.style.setProperty('--btn-border', theme.btnBorder);
       root.style.setProperty('--primary', theme.primary);
+      root.style.setProperty('--bg-image-opacity', theme.bgOpacity || '0.38');
 
       document.getElementById('glow1').style.background = theme.glow1;
       document.getElementById('glow2').style.background = theme.glow2;
@@ -1032,18 +1085,35 @@
       const isDark = lum < 0.45;
 
       const customTheme = {
-        bg: hex,
+        bg: `rgba(${r}, ${g}, ${b}, 0.85)`,
         card: isDark ? 'rgba(20, 20, 25, 0.88)' : 'rgba(255, 255, 255, 0.85)',
-        border: isDark ? 'rgba(70, 70, 80, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+        border: isDark ? 'rgba(70, 70, 80, 0.7)' : 'rgba(255, 255, 255, 0.92)',
         textMain: isDark ? '#FFFFFF' : '#2D3748',
         textSub: isDark ? '#A0AEC0' : '#4A5568',
-        btnBg: isDark ? 'rgba(40, 40, 50, 0.85)' : 'rgba(255, 255, 255, 0.9)',
+        btnBg: isDark ? 'rgba(40, 40, 50, 0.85)' : 'rgba(255, 255, 255, 0.88)',
         btnBorder: isDark ? 'rgba(80, 80, 95, 0.7)' : 'rgba(200, 200, 210, 0.7)',
         primary: isDark ? '#00E5FF' : '#FF758C',
         glow1: hex,
-        glow2: hex
+        glow2: hex,
+        bgOpacity: isDark ? '0.5' : '0.35'
       };
       applyTheme(customTheme);
+    });
+
+    // 背景圖透光度切換按鈕 (透光 38% -> 清晰 70% -> 極致沉浸 90%)
+    const toggleBgBtn = document.getElementById('toggleBgBtn');
+    const opacityModes = [
+      { opacity: '0.38', label: '🖼️ 背景圖：透光 (38%)' },
+      { opacity: '0.65', label: '🖼️ 背景圖：清晰 (65%)' },
+      { opacity: '0.90', label: '🖼️ 背景圖：沉浸 (90%)' }
+    ];
+    let currentOpacityIndex = 0;
+
+    toggleBgBtn.addEventListener('click', () => {
+      currentOpacityIndex = (currentOpacityIndex + 1) % opacityModes.length;
+      const mode = opacityModes[currentOpacityIndex];
+      document.documentElement.style.setProperty('--bg-image-opacity', mode.opacity);
+      toggleBgBtn.textContent = mode.label;
     });
 
     /* ========================================================
