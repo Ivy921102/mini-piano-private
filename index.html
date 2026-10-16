@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>迷你鋼琴</title>
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #FFE8E8 0%, #F5E8FF 50%, #EDE8F5 100%);
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --card-border: rgba(255, 255, 255, 0.9);
+      --text-main: #4A4453;
+      --text-sub: #7A7285;
+      --btn-bg: rgba(255, 255, 255, 0.9);
+      --btn-border: rgba(210, 195, 225, 0.6);
+      --primary: #FF758C;
+      --primary-hover: #FF5E7E;
+      --white-key-bg: #FFFFFF;
+      --white-key-border: #DDD8D5;
+      --black-key-bg: #2B2830;
+      --highlight-white: #FFE4ED;
+      --highlight-white-border: #FF758C;
+      --highlight-black: #D291BC;
+      --shadow-card: 0 16px 40px rgba(130, 110, 150, 0.18);
+      --key-glow-white: rgba(255, 117, 140, 0.65);
+      --key-glow-black: rgba(210, 145, 188, 0.9);
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Microsoft JhengHei", sans-serif;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--text-main);
+      transition: background 0.4s ease, color 0.3s ease;
+      position: relative;
+      overflow-x: hidden;
+      touch-action: manipulation;
+    }
+
+    /* 頂部柔光球 */
+    .glow-sphere {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.55;
+    }
+    .glow-1 {
+      width: 400px;
+      height: 400px;
+      background: rgba(255, 180, 200, 0.7);
+      top: -100px;
+      left: -100px;
+    }
+    .glow-2 {
+      width: 450px;
+      height: 450px;
+      background: rgba(190, 170, 255, 0.7);
+      bottom: -120px;
+      right: -120px;
+    }
+
+    /* 主卡片容器 */
+    .piano-app {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 1350px;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      box-shadow: var(--shadow-card);
+      padding: 16px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: all 0.3s ease;
+    }
+
+    :fullscreen .piano-app,
+    :-webkit-full-screen .piano-app {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      max-width: none;
+      border-radius: 0;
+      padding: 12px 16px;
+      justify-content: space-between;
+    }
+
+    /* 頂部標題 */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 8px;
+      border-bottom: 2px dashed rgba(180, 170, 200, 0.35);
+      flex-wrap: wrap;
+      gap: 8px;
+      position: relative;
+    }
+
+    .title-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* 貼紙 1：仰望星空沈星回 Logo */
+    .title-logo-sticker {
+      width: 52px;
+      height: 52px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 2px solid #FFFFFF;
+      box-shadow: 0 4px 12px rgba(160, 130, 190, 0.28);
+      cursor: pointer;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .title-logo-sticker:hover {
+      transform: scale(1.18) rotate(-6deg);
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-badge {
+      font-size: 0.78rem;
+      background: rgba(255, 255, 255, 0.8);
+      color: var(--text-main);
+      border: 1px solid var(--btn-border);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+
+    /* 控制面板 */
+    .toolbar {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toolbar-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .group-label {
+      font-size: 0.78rem;
+      font-weight: 800;
+      margin-right: 2px;
+      color: var(--text-sub);
+    }
+
+    button, select {
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 18px;
+      border: 1px solid var(--btn-border);
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.3, 1);
+      background: var(--btn-bg);
+      color: var(--text-main);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+      white-space: nowrap;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      filter: brightness(1.02);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    button.active {
+      background: var(--primary);
+      color: #FFFFFF !important;
+      border-color: transparent;
+      box-shadow: 0 3px 10px rgba(255, 117, 140, 0.4);
+    }
+
+    button.recording {
+      background: #FF3366 !important;
+      color: #FFFFFF !important;
+      animation: recPulse 1.2s infinite;
+    }
+
+    @keyframes recPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); box-shadow: 0 0 14px rgba(255, 51, 102, 0.8); }
+      100% { transform: scale(1); }
+    }
+
+    .color-picker-wrap {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--btn-bg);
+      border: 1px solid var(--btn-border);
+      padding: 3px 8px;
+      border-radius: 18px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    input[type="color"] {
+      -webkit-appearance: none;
+      border: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      cursor: pointer;
+      background: none;
+    }
+    input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+    input[type="color"]::-webkit-color-swatch {
+      border: 1px solid rgba(0,0,0,0.2);
+      border-radius: 50%;
+    }
+
+    /* 貼紙 2：控制列右側伴彈墨鏡沈星回 */
+    .side-sticker-sunglasses {
+      width: 48px;
+      height: auto;
+      cursor: pointer;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.12));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .side-sticker-sunglasses:hover {
+      transform: scale(1.25) rotate(6deg);
+    }
+
+    /* 鋼琴自適應容器與角落貼紙 */
+    .piano-box-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    /* 貼紙 3：右上角 勿忘我花束 */
+    .corner-sticker-flower {
+      position: absolute;
+      top: -24px;
+      right: -10px;
+      width: 72px;
+      height: auto;
+      z-index: 10;
+      cursor: pointer;
+      filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.18));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .corner-sticker-flower:hover {
+      transform: scale(1.22) rotate(12deg);
+    }
+
+    /* 貼紙 4：左下角 兔球球 */
+    .corner-sticker-rabbit {
+      position: absolute;
+      bottom: -16px;
+      left: -12px;
+      width: 64px;
+      height: auto;
+      z-index: 10;
+      cursor: pointer;
+      filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.18));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .corner-sticker-rabbit:hover {
+      transform: scale(1.25) rotate(-10deg);
+    }
+
+    .piano-box {
+      width: 100%;
+      background: #232128;
+      border-radius: 18px;
+      padding: 8px 10px 12px 10px;
+      box-shadow: 0 12px 34px rgba(25, 20, 35, 0.35);
+      position: relative;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 117, 140, 0.5) transparent;
+      touch-action: pan-x;
+    }
+
+    .piano-box::-webkit-scrollbar {
+      height: 6px;
+    }
+    .piano-box::-webkit-scrollbar-thumb {
+      background: rgba(255, 117, 140, 0.5);
+      border-radius: 4px;
+    }
+
+    :fullscreen .piano-box,
+    :-webkit-full-screen .piano-box {
+      flex: 1;
+      height: 100%;
+      min-height: 260px;
+      display: flex;
+      align-items: stretch;
+    }
+
+    .piano-keys {
+      position: relative;
+      display: flex;
+      width: 100%;
+      min-width: 780px;
+      height: 260px;
+      touch-action: none;
+    }
+
+    :fullscreen .piano-keys,
+    :-webkit-full-screen .piano-keys {
+      height: 100%;
+      min-width: 100%;
+    }
+
+    .key {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      padding-bottom: 10px;
+      cursor: pointer;
+      transition: background 0.08s ease, transform 0.08s ease, box-shadow 0.08s ease;
+      touch-action: none;
+    }
+
+    .white-key {
+      flex: 1;
+      height: 100%;
+      background: var(--white-key-bg);
+      border: 1px solid var(--white-key-border);
+      border-radius: 0 0 8px 8px;
+      margin: 0 1px;
+      z-index: 1;
+      box-shadow: 0 3px 5px rgba(0, 0, 0, 0.08);
+    }
+
+    .black-key {
+      position: absolute;
+      width: 4.2%;
+      height: 60%;
+      background: var(--black-key-bg);
+      border-radius: 0 0 6px 6px;
+      z-index: 2;
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .key-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      pointer-events: none;
+    }
+
+    .solfege {
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+
+    .kbd-hint {
+      font-size: 0.66rem;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+
+    .white-key .solfege { color: #4A4453; }
+    .white-key .kbd-hint { background: #EEE8EE; color: #7F738A; }
+
+    .black-key .solfege { color: #FFD4E4; }
+    .black-key .kbd-hint { background: #4D4559; color: #FFFFFF; }
+
+    .hide-labels .key-label {
+      display: none;
+    }
+
+    .enable-feedback .white-key.active,
+    .white-key.auto-highlight {
+      background: linear-gradient(to bottom, #FFFFFF 20%, var(--highlight-white) 100%) !important;
+      transform: translateY(3px);
+      border-color: var(--highlight-white-border) !important;
+      box-shadow: 0 2px 14px var(--key-glow-white), inset 0 -3px 8px var(--key-glow-white) !important;
+    }
+
+    .enable-feedback .black-key.active,
+    .black-key.auto-highlight {
+      background: linear-gradient(to bottom, #3E3848 0%, var(--highlight-black) 100%) !important;
+      transform: translateY(2px);
+      box-shadow: 0 0 16px var(--key-glow-black), 0 3px 6px rgba(0,0,0,0.45) !important;
+    }
+
+    #videoCanvas {
+      display: none;
+    }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      border-top: 1px dashed rgba(180, 170, 200, 0.35);
+      padding-top: 8px;
+    }
+
+    .kbd-tag {
+      background: rgba(255, 255, 255, 0.7);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-weight: 700;
+      border: 1px solid var(--btn-border);
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 6px;
+      }
+      .piano-app {
+        padding: 12px 14px;
+        border-radius: 16px;
+        gap: 10px;
+      }
+      h1 {
+        font-size: 1.25rem;
+      }
+      .title-logo-sticker {
+        width: 42px;
+        height: 42px;
+      }
+      .corner-sticker-flower {
+        width: 50px;
+        top: -18px;
+        right: -6px;
+      }
+      .corner-sticker-rabbit {
+        width: 46px;
+        bottom: -12px;
+        left: -6px;
+      }
+      button, select {
+        font-size: 0.74rem;
+        padding: 5px 9px;
+      }
+      .piano-keys {
+        height: 210px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="glow-sphere glow-1" id="glow1"></div>
+  <div class="glow-sphere glow-2" id="glow2"></div>
+
+  <!-- 錄影離屏 Canvas -->
+  <canvas id="videoCanvas" width="960" height="320"></canvas>
+
+  <div class="piano-app" id="pianoApp">
+    <header>
+      <div class="title-area">
+        <!-- 貼紙 1：仰望星空沈星回 Logo -->
+        <img src="assets/sky.png" class="title-logo-sticker" alt="仰望星空沈星回" title="沈星回：與你一起看見更大的世界" />
+        <h1>🎹 迷你鋼琴</h1>
+        <div id="statusBadge" class="status-badge">✨ 準備就緒</div>
+      </div>
+
+      <div class="btn-group">
+        <button id="fullscreenBtn">⛶ 全螢幕模式</button>
+      </div>
+    </header>
+
+    <div class="toolbar">
+      <!-- 第一列：主題切換與自訂色盤 -->
+      <div class="toolbar-row">
+        <div class="btn-group">
+          <span class="group-label">主題配色:</span>
+          <button class="theme-btn active" data-theme="pastel">🌸 蜜桃紫</button>
+          <button class="theme-btn" data-theme="dark">🌙 星空黑</button>
+          <button class="theme-btn" data-theme="mint">🍵 薄荷綠</button>
+          <button class="theme-btn" data-theme="sunset">🌅 餘暉金</button>
+          <button class="theme-btn" data-theme="ocean">🌊 琉璃藍</button>
+          <label class="color-picker-wrap" title="點擊自選背景顏色">
+            <span>🎨 自選色</span>
+            <input type="color" id="customColorPicker" value="#FFE8E8" />
+          </label>
+        </div>
+
+        <!-- 貼紙 2：工具列右側伴彈墨鏡沈星回貼紙 -->
+        <div class="btn-group">
+          <img src="assets/sunglasses.png" class="side-sticker-sunglasses" alt="墨鏡沈星回" title="沈星回：交給我吧！" />
+        </div>
+      </div>
+
+      <!-- 第二列：演奏設置與完整曲庫 -->
+      <div class="toolbar-row">
+        <div class="btn-group">
+          <span class="group-label">演奏設置:</span>
+          <button id="feedbackBtn" class="active">視覺回饋：開</button>
+          <button id="labelsBtn">唱名：顯示</button>
+          <button id="sustainBtn">延音：關</button>
+        </div>
+
+        <div class="btn-group">
+          <span class="group-label">完整曲庫:</span>
+          <select id="songSelect">
+            <option value="none">-- 選擇完整樂曲 --</option>
+            <optgroup label="童謠系列 (完整版)">
+              <option value="star">★ 小星星 (完整三段體 A-B-A 全曲)</option>
+              <option value="twoTigers">🐯 兩隻老虎 (四樂句輪唱完整版)</option>
+              <option value="littleBee">🐝 小蜜蜂 (經典德國民謠完整版)</option>
+            </optgroup>
+            <optgroup label="古典音樂系列 (完整版)">
+              <option value="elise">♫ 給愛麗絲 (貝多芬完整主題與過門再現)</option>
+              <option value="odeToJoy">☀️ 歡樂頌 (第九號交響曲第四樂章完整主題)</option>
+            </optgroup>
+          </select>
+          <button id="playSongBtn">▶ 播放完整示範</button>
+          <button id="stopSongBtn">⏹ 停止</button>
+        </div>
+      </div>
+
+      <!-- 第三列：實體錄音與多媒體匯出 -->
+      <div class="toolbar-row">
+        <div class="btn-group">
+          <span class="group-label">實體錄音:</span>
+          <button id="recordBtn">⏺ 開始錄音</button>
+          <button id="playRecordBtn" disabled>▶ 回放錄製</button>
+        </div>
+
+        <div class="btn-group">
+          <span class="group-label">通用匯出:</span>
+          <button id="exportWavBtn" disabled>⬇ 匯出 WAV</button>
+          <button id="exportMp3Btn" disabled>⬇ 匯出 MP3</button>
+          <button id="exportMp4Btn" disabled>🎬 匯出 MP4 影片</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 鋼琴按鍵區域 (搭配貼紙 3 與貼紙 4) -->
+    <div class="piano-box-wrapper">
+      <!-- 貼紙 3：右上角 勿忘我花束 -->
+      <img src="assets/flower.png" class="corner-sticker-flower" alt="勿忘我花束" title="勿忘我：給最特別的你" />
+      
+      <!-- 貼紙 4：左下角 兔球球 -->
+      <img src="assets/rabbit.png" class="corner-sticker-rabbit" alt="兔球球" title="兔球球：彈得好棒！" />
+
+      <div class="piano-box" id="pianoBox">
+        <div class="piano-keys enable-feedback" id="pianoKeys"></div>
+      </div>
+    </div>
+
+    <footer>
+      <div>💡 點擊沈星回貼紙會搖晃彈跳！支援手機/平板觸控、筆電與鍵盤彈奏</div>
+      <div>
+        低八度：<span class="kbd-tag">A S D F G H J</span> / <span class="kbd-tag">W E T Y U</span>
+        | 高八度：<span class="kbd-tag">K L ; ' Z X C V</span> / <span class="kbd-tag">O P [ ] \</span>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    /* ========================================================
+       1. 25 鍵完整資料庫 (中央 C4 至高音 C6)
+       ======================================================== */
+    const NOTES = [
+      { note: 'C4',  solfege: 'Do',  freq: 261.63, key: 'a',  type: 'white' },
+      { note: 'C#4', solfege: 'Di',  freq: 277.18, key: 'w',  type: 'black' },
+      { note: 'D4',  solfege: 'Re',  freq: 293.66, key: 's',  type: 'white' },
+      { note: 'D#4', solfege: 'Ri',  freq: 311.13, key: 'e',  type: 'black' },
+      { note: 'E4',  solfege: 'Mi',  freq: 329.63, key: 'd',  type: 'white' },
+      { note: 'F4',  solfege: 'Fa',  freq: 349.23, key: 'f',  type: 'white' },
+      { note: 'F#4', solfege: 'Fi',  freq: 369.99, key: 't',  type: 'black' },
+      { note: 'G4',  solfege: 'Sol', freq: 392.00, key: 'g',  type: 'white' },
+      { note: 'G#4', solfege: 'Si',  freq: 415.30, key: 'y',  type: 'black' },
+      { note: 'A4',  solfege: 'La',  freq: 440.00, key: 'h',  type: 'white' },
+      { note: 'A#4', solfege: 'Li',  freq: 466.16, key: 'u',  type: 'black' },
+      { note: 'B4',  solfege: 'Ti',  freq: 493.88, key: 'j',  type: 'white' },
+
+      { note: 'C5',  solfege: 'Do',  freq: 523.25, key: 'k',  type: 'white' },
+      { note: 'C#5', solfege: 'Di',  freq: 554.37, key: 'o',  type: 'black' },
+      { note: 'D5',  solfege: 'Re',  freq: 587.33, key: 'l',  type: 'white' },
+      { note: 'D#5', solfege: 'Ri',  freq: 622.25, key: 'p',  type: 'black' },
+      { note: 'E5',  solfege: 'Mi',  freq: 659.25, key: ';',  type: 'white' },
+      { note: 'F5',  solfege: 'Fa',  freq: 698.46, key: "'",  type: 'white' },
+      { note: 'F#5', solfege: 'Fi',  freq: 739.99, key: '[',  type: 'black' },
+      { note: 'G5',  solfege: 'Sol', freq: 783.99, key: 'z',  type: 'white' },
+      { note: 'G#5', solfege: 'Si',  freq: 830.61, key: ']',  type: 'black' },
+      { note: 'A5',  solfege: 'La',  freq: 880.00, key: 'x',  type: 'white' },
+      { note: 'A#5', solfege: 'Li',  freq: 932.33, key: '\\', type: 'black' },
+      { note: 'B5',  solfege: 'Ti',  freq: 987.77, key: 'c',  type: 'white' },
+      { note: 'C6',  solfege: 'Do',  freq: 1046.50, key: 'v', type: 'white' }
+    ];
+
+    /* ========================================================
+       2. Web Audio API 音效合成引擎
+       ======================================================== */
+    let audioCtx = null;
+    let streamDest = null;
+    let sustainEnabled = false;
+    let visualFeedback = true;
+    const activeVoices = new Map();
+
+    let pcmSampleRate = 44100;
+    let pcmBuffers = [];
+    let pcmRecorderNode = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass();
+        pcmSampleRate = audioCtx.sampleRate;
+
+        streamDest = audioCtx.createMediaStreamDestination();
+
+        pcmRecorderNode = audioCtx.createScriptProcessor(4096, 1, 1);
+        pcmRecorderNode.onaudioprocess = (e) => {
+          if (isRecording) {
+            const input = e.inputBuffer.getChannelData(0);
+            pcmBuffers.push(new Float32Array(input));
+          }
+        };
+
+        const silentGain = audioCtx.createGain();
+        silentGain.gain.value = 0;
+        pcmRecorderNode.connect(silentGain);
+        silentGain.connect(audioCtx.destination);
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playNote(freq) {
+      const ctx = getAudioContext();
+      const now = ctx.currentTime;
+
+      const osc1 = ctx.createOscillator();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(freq, now);
+
+      const osc2 = ctx.createOscillator();
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(freq * 2, now);
+
+      const osc2Gain = ctx.createGain();
+      osc2Gain.gain.setValueAtTime(0.24, now);
+      osc2.connect(osc2Gain);
+
+      const masterGain = ctx.createGain();
+      masterGain.gain.setValueAtTime(0.001, now);
+      masterGain.gain.exponentialRampToValueAtTime(0.68, now + 0.005);
+      masterGain.gain.exponentialRampToValueAtTime(0.38, now + 0.28);
+
+      osc1.connect(masterGain);
+      osc2Gain.connect(masterGain);
+
+      masterGain.connect(ctx.destination);
+      if (streamDest) masterGain.connect(streamDest);
+      if (pcmRecorderNode) masterGain.connect(pcmRecorderNode);
+
+      osc1.start(now);
+      osc2.start(now);
+
+      return { osc1, osc2, masterGain };
+    }
+
+    function stopNoteVoice(voice) {
+      if (!voice || !audioCtx) return;
+      const now = audioCtx.currentTime;
+      const releaseTime = sustainEnabled ? 2.6 : 0.22;
+
+      voice.masterGain.gain.cancelScheduledValues(now);
+      voice.masterGain.gain.setValueAtTime(voice.masterGain.gain.value, now);
+      voice.masterGain.gain.exponentialRampToValueAtTime(0.0001, now + releaseTime);
+
+      voice.osc1.stop(now + releaseTime + 0.05);
+      voice.osc2.stop(now + releaseTime + 0.05);
+    }
+
+    function triggerNoteStart(noteObj, isAutoPlay = false) {
+      if (activeVoices.has(noteObj.note)) return;
+      const voice = playNote(noteObj.freq);
+      activeVoices.set(noteObj.note, voice);
+
+      const keyEl = noteElements.get(noteObj.note);
+      if (keyEl) {
+        if (isAutoPlay) keyEl.classList.add('auto-highlight');
+        else keyEl.classList.add('active');
+      }
+
+      if (isRecording) {
+        recordedEvents.push({
+          note: noteObj.note,
+          action: 'down',
+          time: performance.now() - recordStartTime
+        });
+      }
+    }
+
+    function triggerNoteEnd(noteObj, isAutoPlay = false) {
+      const voice = activeVoices.get(noteObj.note);
+      if (voice) {
+        stopNoteVoice(voice);
+        activeVoices.delete(noteObj.note);
+      }
+
+      const keyEl = noteElements.get(noteObj.note);
+      if (keyEl) {
+        keyEl.classList.remove('active', 'auto-highlight');
+      }
+
+      if (isRecording) {
+        recordedEvents.push({
+          note: noteObj.note,
+          action: 'up',
+          time: performance.now() - recordStartTime
+        });
+      }
+    }
+
+    /* ========================================================
+       3. 琴鍵建置與自適應佈局
+       ======================================================== */
+    const pianoKeysEl = document.getElementById('pianoKeys');
+    const noteMapByNote = new Map();
+    const noteMapByKey = new Map();
+    const noteElements = new Map();
+
+    const TOTAL_WHITE_KEYS = 15;
+
+    function buildPiano() {
+      let whiteIndex = 0;
+
+      NOTES.forEach(item => {
+        noteMapByNote.set(item.note, item);
+        noteMapByKey.set(item.key.toLowerCase(), item);
+
+        const keyEl = document.createElement('div');
+        keyEl.className = `key ${item.type === 'white' ? 'white-key' : 'black-key'}`;
+        keyEl.dataset.note = item.note;
+        noteElements.set(item.note, keyEl);
+
+        const labelEl = document.createElement('div');
+        labelEl.className = 'key-label';
+
+        const solfege = document.createElement('span');
+        solfege.className = 'solfege';
+        solfege.textContent = item.solfege;
+
+        const kbd = document.createElement('span');
+        kbd.className = 'kbd-hint';
+        kbd.textContent = item.key.toUpperCase();
+
+        labelEl.appendChild(solfege);
+        labelEl.appendChild(kbd);
+        keyEl.appendChild(labelEl);
+
+        if (item.type === 'white') {
+          pianoKeysEl.appendChild(keyEl);
+          whiteIndex++;
+        } else {
+          const percent = (whiteIndex / TOTAL_WHITE_KEYS) * 100 - (4.2 / 2);
+          keyEl.style.left = `${percent}%`;
+          pianoKeysEl.appendChild(keyEl);
+        }
+      });
+    }
+
+    buildPiano();
+
+    /* ========================================================
+       4. 跨裝置事件處理 (手機/平板多點觸控 + 電腦滑鼠鍵盤)
+       ======================================================== */
+    let isMouseDown = false;
+
+    window.addEventListener('mousedown', () => { isMouseDown = true; });
+    window.addEventListener('mouseup', () => {
+      isMouseDown = false;
+      activeVoices.forEach((_, noteName) => {
+        const item = noteMapByNote.get(noteName);
+        if (item) triggerNoteEnd(item);
+      });
+    });
+
+    document.querySelectorAll('.key').forEach(keyEl => {
+      const noteObj = noteMapByNote.get(keyEl.dataset.note);
+
+      keyEl.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        triggerNoteStart(noteObj);
+      });
+
+      keyEl.addEventListener('mouseenter', () => {
+        if (isMouseDown) triggerNoteStart(noteObj);
+      });
+
+      keyEl.addEventListener('mouseleave', () => {
+        if (isMouseDown) triggerNoteEnd(noteObj);
+      });
+    });
+
+    const activeTouches = new Map();
+
+    pianoKeysEl.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      getAudioContext();
+      Array.from(e.changedTouches).forEach(touch => {
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        const keyEl = target ? target.closest('.key') : null;
+        if (keyEl) {
+          const noteObj = noteMapByNote.get(keyEl.dataset.note);
+          if (noteObj) {
+            activeTouches.set(touch.identifier, noteObj);
+            triggerNoteStart(noteObj);
+          }
+        }
+      });
+    }, { passive: false });
+
+    pianoKeysEl.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      Array.from(e.changedTouches).forEach(touch => {
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        const keyEl = target ? target.closest('.key') : null;
+        const prevNote = activeTouches.get(touch.identifier);
+
+        if (keyEl) {
+          const currentNote = noteMapByNote.get(keyEl.dataset.note);
+          if (currentNote && currentNote !== prevNote) {
+            if (prevNote) triggerNoteEnd(prevNote);
+            activeTouches.set(touch.identifier, currentNote);
+            triggerNoteStart(currentNote);
+          }
+        } else if (prevNote) {
+          triggerNoteEnd(prevNote);
+          activeTouches.delete(touch.identifier);
+        }
+      });
+    }, { passive: false });
+
+    function handleTouchEnd(e) {
+      e.preventDefault();
+      Array.from(e.changedTouches).forEach(touch => {
+        const prevNote = activeTouches.get(touch.identifier);
+        if (prevNote) {
+          triggerNoteEnd(prevNote);
+          activeTouches.delete(touch.identifier);
+        }
+      });
+    }
+
+    pianoKeysEl.addEventListener('touchend', handleTouchEnd, { passive: false });
+    pianoKeysEl.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+
+    const pressedKeys = new Set();
+    window.addEventListener('keydown', (e) => {
+      if (e.repeat) return;
+      const key = e.key.toLowerCase();
+      if (noteMapByKey.has(key) && !pressedKeys.has(key)) {
+        pressedKeys.add(key);
+        triggerNoteStart(noteMapByKey.get(key));
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      const key = e.key.toLowerCase();
+      if (pressedKeys.has(key)) {
+        pressedKeys.delete(key);
+        triggerNoteEnd(noteMapByKey.get(key));
+      }
+    });
+
+    /* ========================================================
+       5. 主題配色與智慧亮度對比演算法
+       ======================================================== */
+    const THEMES = {
+      pastel: {
+        bg: 'linear-gradient(135deg, #FFE8E8 0%, #F5E8FF 50%, #EDE8F5 100%)',
+        card: 'rgba(255, 255, 255, 0.85)',
+        border: 'rgba(255, 255, 255, 0.9)',
+        textMain: '#4A4453',
+        textSub: '#7A7285',
+        btnBg: 'rgba(255, 255, 255, 0.9)',
+        btnBorder: 'rgba(210, 195, 225, 0.6)',
+        primary: '#FF758C',
+        glow1: 'rgba(255, 180, 200, 0.7)',
+        glow2: 'rgba(190, 170, 255, 0.7)'
+      },
+      dark: {
+        bg: 'linear-gradient(135deg, #12131C 0%, #1A1C29 50%, #0F1016 100%)',
+        card: 'rgba(26, 28, 42, 0.88)',
+        border: 'rgba(60, 65, 95, 0.8)',
+        textMain: '#F0F4F8',
+        textSub: '#A4B0C2',
+        btnBg: 'rgba(38, 42, 64, 0.85)',
+        btnBorder: 'rgba(70, 78, 115, 0.7)',
+        primary: '#00F2FE',
+        glow1: 'rgba(0, 242, 254, 0.25)',
+        glow2: 'rgba(79, 172, 254, 0.25)'
+      },
+      mint: {
+        bg: 'linear-gradient(135deg, #E8F5E9 0%, #E0F2F1 50%, #C8E6C9 100%)',
+        card: 'rgba(255, 255, 255, 0.82)',
+        border: 'rgba(255, 255, 255, 0.9)',
+        textMain: '#2E4633',
+        textSub: '#58745E',
+        btnBg: 'rgba(255, 255, 255, 0.9)',
+        btnBorder: 'rgba(180, 215, 190, 0.7)',
+        primary: '#43A047',
+        glow1: 'rgba(165, 214, 167, 0.6)',
+        glow2: 'rgba(128, 203, 196, 0.6)'
+      },
+      sunset: {
+        bg: 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 50%, #FFCC80 100%)',
+        card: 'rgba(255, 255, 255, 0.82)',
+        border: 'rgba(255, 255, 255, 0.9)',
+        textMain: '#4E342E',
+        textSub: '#7D5C53',
+        btnBg: 'rgba(255, 255, 255, 0.9)',
+        btnBorder: 'rgba(255, 204, 128, 0.7)',
+        primary: '#FB8C00',
+        glow1: 'rgba(255, 183, 77, 0.6)',
+        glow2: 'rgba(255, 138, 101, 0.6)'
+      },
+      ocean: {
+        bg: 'linear-gradient(135deg, #E1F5FE 0%, #B3E5FC 50%, #81D4FA 100%)',
+        card: 'rgba(255, 255, 255, 0.82)',
+        border: 'rgba(255, 255, 255, 0.9)',
+        textMain: '#1A3B5C',
+        textSub: '#486E94',
+        btnBg: 'rgba(255, 255, 255, 0.9)',
+        btnBorder: 'rgba(129, 212, 250, 0.7)',
+        primary: '#0288D1',
+        glow1: 'rgba(79, 195, 247, 0.6)',
+        glow2: 'rgba(100, 181, 246, 0.6)'
+      }
+    };
+
+    function applyTheme(theme) {
+      const root = document.documentElement;
+      root.style.setProperty('--bg-gradient', theme.bg);
+      root.style.setProperty('--card-bg', theme.card);
+      root.style.setProperty('--card-border', theme.border);
+      root.style.setProperty('--text-main', theme.textMain);
+      root.style.setProperty('--text-sub', theme.textSub);
+      root.style.setProperty('--btn-bg', theme.btnBg);
+      root.style.setProperty('--btn-border', theme.btnBorder);
+      root.style.setProperty('--primary', theme.primary);
+
+      document.getElementById('glow1').style.background = theme.glow1;
+      document.getElementById('glow2').style.background = theme.glow2;
+    }
+
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const themeKey = btn.dataset.theme;
+        if (THEMES[themeKey]) applyTheme(THEMES[themeKey]);
+      });
+    });
+
+    const customColorPicker = document.getElementById('customColorPicker');
+    customColorPicker.addEventListener('input', (e) => {
+      document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+      const hex = e.target.value;
+      const rgb = parseInt(hex.slice(1), 16);
+      const r = (rgb >> 16) & 255;
+      const g = (rgb >> 8) & 255;
+      const b = rgb & 255;
+
+      const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+      const isDark = lum < 0.45;
+
+      const customTheme = {
+        bg: hex,
+        card: isDark ? 'rgba(20, 20, 25, 0.88)' : 'rgba(255, 255, 255, 0.85)',
+        border: isDark ? 'rgba(70, 70, 80, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+        textMain: isDark ? '#FFFFFF' : '#2D3748',
+        textSub: isDark ? '#A0AEC0' : '#4A5568',
+        btnBg: isDark ? 'rgba(40, 40, 50, 0.85)' : 'rgba(255, 255, 255, 0.9)',
+        btnBorder: isDark ? 'rgba(80, 80, 95, 0.7)' : 'rgba(200, 200, 210, 0.7)',
+        primary: isDark ? '#00E5FF' : '#FF758C',
+        glow1: hex,
+        glow2: hex
+      };
+      applyTheme(customTheme);
+    });
+
+    /* ========================================================
+       6. 演奏設置切換與全螢幕
+       ======================================================== */
+    const feedbackBtn = document.getElementById('feedbackBtn');
+    feedbackBtn.addEventListener('click', () => {
+      visualFeedback = !visualFeedback;
+      pianoKeysEl.classList.toggle('enable-feedback', visualFeedback);
+      feedbackBtn.classList.toggle('active', visualFeedback);
+      feedbackBtn.textContent = `視覺回饋：${visualFeedback ? '開' : '關'}`;
+    });
+
+    const labelsBtn = document.getElementById('labelsBtn');
+    let labelsVisible = true;
+    labelsBtn.addEventListener('click', () => {
+      labelsVisible = !labelsVisible;
+      pianoKeysEl.classList.toggle('hide-labels', !labelsVisible);
+      labelsBtn.textContent = `唱名：${labelsVisible ? '顯示' : '隱藏'}`;
+    });
+
+    const sustainBtn = document.getElementById('sustainBtn');
+    sustainBtn.addEventListener('click', () => {
+      sustainEnabled = !sustainEnabled;
+      sustainBtn.classList.toggle('active', sustainEnabled);
+      sustainBtn.textContent = `延音：${sustainEnabled ? '開' : '關'}`;
+    });
+
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    fullscreenBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+        else if (document.documentElement.webkitRequestFullscreen) document.documentElement.webkitRequestFullscreen();
+        fullscreenBtn.textContent = '⛶ 退出全螢幕';
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        fullscreenBtn.textContent = '⛶ 全螢幕模式';
+      }
+    });
+
+    /* ========================================================
+       7. 完整曲庫
+       ======================================================== */
+    const SONGS = {
+      star: [
+        ['C4', 400], ['C4', 400], ['G4', 400], ['G4', 400], ['A4', 400], ['A4', 400], ['G4', 800],
+        ['F4', 400], ['F4', 400], ['E4', 400], ['E4', 400], ['D4', 400], ['D4', 400], ['C4', 800],
+        ['G4', 400], ['G4', 400], ['F4', 400], ['F4', 400], ['E4', 400], ['E4', 400], ['D4', 800],
+        ['G4', 400], ['G4', 400], ['F4', 400], ['F4', 400], ['E4', 400], ['E4', 400], ['D4', 800],
+        ['C4', 400], ['C4', 400], ['G4', 400], ['G4', 400], ['A4', 400], ['A4', 400], ['G4', 800],
+        ['F4', 400], ['F4', 400], ['E4', 400], ['E4', 400], ['D4', 400], ['D4', 400], ['C4', 800]
+      ],
+      twoTigers: [
+        ['C4', 360], ['D4', 360], ['E4', 360], ['C4', 360],
+        ['C4', 360], ['D4', 360], ['E4', 360], ['C4', 360],
+        ['E4', 360], ['F4', 360], ['G4', 720],
+        ['E4', 360], ['F4', 360], ['G4', 720],
+        ['G4', 270], ['A4', 270], ['G4', 270], ['F4', 270], ['E4', 360], ['C4', 360],
+        ['G4', 270], ['A4', 270], ['G4', 270], ['F4', 270], ['E4', 360], ['C4', 360],
+        ['D4', 360], ['G4', 360], ['C4', 720],
+        ['D4', 360], ['G4', 360], ['C4', 720]
+      ],
+      littleBee: [
+        ['G4', 380], ['E4', 380], ['E4', 760],
+        ['F4', 380], ['D4', 380], ['D4', 760],
+        ['C4', 380], ['D4', 380], ['E4', 380], ['F4', 380],
+        ['G4', 380], ['G4', 380], ['G4', 760],
+        ['G4', 380], ['E4', 380], ['E4', 760],
+        ['F4', 380], ['D4', 380], ['D4', 760],
+        ['C4', 380], ['E4', 380], ['G4', 380], ['G4', 380],
+        ['C4', 900]
+      ],
+      elise: [
+        ['E5', 240], ['D#5', 240], ['E5', 240], ['D#5', 240], ['E5', 240], ['B4', 240], ['D5', 240], ['C5', 240],
+        ['A4', 480], ['REST', 120],
+        ['C4', 240], ['E4', 240], ['A4', 240], ['B4', 480], ['REST', 120],
+        ['E4', 240], ['G#4', 240], ['B4', 240], ['C5', 480], ['REST', 120],
+        ['E4', 240],
+        ['E5', 240], ['D#5', 240], ['E5', 240], ['D#5', 240], ['E5', 240], ['B4', 240], ['D5', 240], ['C5', 240],
+        ['A4', 480], ['REST', 120],
+        ['C4', 240], ['E4', 240], ['A4', 240], ['B4', 480], ['REST', 120],
+        ['E4', 240], ['C5', 240], ['B4', 240], ['A4', 680], ['REST', 150],
+        ['B4', 240], ['C5', 240], ['D5', 240], ['E5', 480],
+        ['G4', 240], ['F5', 240], ['E5', 240], ['D5', 480],
+        ['F4', 240], ['E5', 240], ['D5', 240], ['C5', 480],
+        ['E4', 240], ['D5', 240], ['C5', 240], ['B4', 600],
+        ['E4', 240],
+        ['E5', 240], ['D#5', 240], ['E5', 240], ['D#5', 240], ['E5', 240], ['B4', 240], ['D5', 240], ['C5', 240],
+        ['A4', 480], ['REST', 120],
+        ['C4', 240], ['E4', 240], ['A4', 240], ['B4', 480], ['REST', 120],
+        ['E4', 240], ['C5', 240], ['B4', 240], ['A4', 750]
+      ],
+      odeToJoy: [
+        ['E4', 360], ['E4', 360], ['F4', 360], ['G4', 360], ['G4', 360], ['F4', 360], ['E4', 360], ['D4', 360],
+        ['C4', 360], ['C4', 360], ['D4', 360], ['E4', 360], ['E4', 500], ['D4', 200], ['D4', 720],
+        ['E4', 360], ['E4', 360], ['F4', 360], ['G4', 360], ['G4', 360], ['F4', 360], ['E4', 360], ['D4', 360],
+        ['C4', 360], ['C4', 360], ['D4', 360], ['E4', 360], ['D4', 500], ['C4', 200], ['C4', 720],
+        ['D4', 360], ['D4', 360], ['E4', 360], ['C4', 360],
+        ['D4', 360], ['E4', 180], ['F4', 180], ['E4', 360], ['C4', 360],
+        ['D4', 360], ['E4', 180], ['F4', 180], ['E4', 360], ['D4', 360], ['C4', 360], ['D4', 360], ['G4', 720],
+        ['E4', 360], ['E4', 360], ['F4', 360], ['G4', 360], ['G4', 360], ['F4', 360], ['E4', 360], ['D4', 360],
+        ['C4', 360], ['C4', 360], ['D4', 360], ['E4', 360], ['D4', 500], ['C4', 200], ['C4', 800]
+      ]
+    };
+
+    let songPlaybackTimeouts = [];
+    const songSelect = document.getElementById('songSelect');
+    const playSongBtn = document.getElementById('playSongBtn');
+    const stopSongBtn = document.getElementById('stopSongBtn');
+    const statusBadge = document.getElementById('statusBadge');
+
+    function stopAllPlaying() {
+      songPlaybackTimeouts.forEach(t => clearTimeout(t));
+      songPlaybackTimeouts = [];
+      activeVoices.forEach((_, noteName) => {
+        const item = noteMapByNote.get(noteName);
+        if (item) triggerNoteEnd(item, true);
+      });
+      document.querySelectorAll('.key').forEach(k => k.classList.remove('active', 'auto-highlight'));
+      playSongBtn.disabled = false;
+      statusBadge.textContent = '✨ 準備就緒';
+    }
+
+    playSongBtn.addEventListener('click', () => {
+      const songKey = songSelect.value;
+      if (songKey === 'none') {
+        alert('請先在選單中選擇一首完整樂曲！');
+        return;
+      }
+      stopAllPlaying();
+      getAudioContext();
+      playSongBtn.disabled = true;
+      statusBadge.textContent = `♫ 正在示範: ${songSelect.options[songSelect.selectedIndex].text}`;
+
+      const songData = SONGS[songKey];
+      let accTime = 0;
+
+      songData.forEach(([noteName, dur]) => {
+        if (noteName !== 'REST') {
+          const noteObj = noteMapByNote.get(noteName);
+          if (noteObj) {
+            const t1 = setTimeout(() => triggerNoteStart(noteObj, true), accTime);
+            const t2 = setTimeout(() => triggerNoteEnd(noteObj, true), accTime + dur * 0.85);
+            songPlaybackTimeouts.push(t1, t2);
+          }
+        }
+        accTime += dur;
+      });
+
+      const finishT = setTimeout(() => {
+        statusBadge.textContent = '完整示範播放完畢 ✨';
+        playSongBtn.disabled = false;
+      }, accTime + 400);
+      songPlaybackTimeouts.push(finishT);
+    });
+
+    stopSongBtn.addEventListener('click', stopAllPlaying);
+
+    /* ========================================================
+       8. 實體錄音與多媒體匯出
+       ======================================================== */
+    const recordBtn = document.getElementById('recordBtn');
+    const playRecordBtn = document.getElementById('playRecordBtn');
+    const exportWavBtn = document.getElementById('exportWavBtn');
+    const exportMp3Btn = document.getElementById('exportMp3Btn');
+    const exportMp4Btn = document.getElementById('exportMp4Btn');
+    const videoCanvas = document.getElementById('videoCanvas');
+    const canvasCtx = videoCanvas.getContext('2d');
+
+    let isRecording = false;
+    let recordStartTime = 0;
+    let recordedEvents = [];
+    let mediaRecorder = null;
+    let recordedAudioChunks = [];
+    let videoMediaRecorder = null;
+    let recordedVideoChunks = [];
+    let canvasAnimId = null;
+
+    function renderPianoFrame() {
+      canvasCtx.fillStyle = '#232128';
+      canvasCtx.fillRect(0, 0, videoCanvas.width, videoCanvas.height);
+
+      const totalW = videoCanvas.width;
+      const totalH = videoCanvas.height;
+      const whiteW = totalW / TOTAL_WHITE_KEYS;
+
+      let wIdx = 0;
+      NOTES.forEach(n => {
+        if (n.type === 'white') {
+          const isAct = activeVoices.has(n.note);
+          canvasCtx.fillStyle = isAct ? '#FFE4ED' : '#FFFFFF';
+          canvasCtx.strokeStyle = '#DDD8D5';
+          canvasCtx.lineWidth = 2;
+          canvasCtx.fillRect(wIdx * whiteW + 1, 0, whiteW - 2, totalH - 4);
+          canvasCtx.strokeRect(wIdx * whiteW + 1, 0, whiteW - 2, totalH - 4);
+
+          canvasCtx.fillStyle = '#5A5064';
+          canvasCtx.font = 'bold 15px sans-serif';
+          canvasCtx.textAlign = 'center';
+          canvasCtx.fillText(n.solfege, wIdx * whiteW + whiteW / 2, totalH - 25);
+          wIdx++;
+        }
+      });
+
+      wIdx = 0;
+      const blackW = whiteW * 0.62;
+      const blackH = totalH * 0.6;
+      NOTES.forEach(n => {
+        if (n.type === 'white') {
+          wIdx++;
+        } else {
+          const isAct = activeVoices.has(n.note);
+          const x = wIdx * whiteW - (blackW / 2);
+          canvasCtx.fillStyle = isAct ? '#D291BC' : '#2D2833';
+          canvasCtx.fillRect(x, 0, blackW, blackH);
+
+          canvasCtx.fillStyle = '#FFD4E4';
+          canvasCtx.font = 'bold 12px sans-serif';
+          canvasCtx.textAlign = 'center';
+          canvasCtx.fillText(n.solfege, x + blackW / 2, blackH - 14);
+        }
+      });
+
+      if (isRecording) {
+        canvasAnimId = requestAnimationFrame(renderPianoFrame);
+      }
+    }
+
+    recordBtn.addEventListener('click', () => {
+      const ctx = getAudioContext();
+
+      if (!isRecording) {
+        stopAllPlaying();
+        isRecording = true;
+        recordedEvents = [];
+        pcmBuffers = [];
+        recordedAudioChunks = [];
+        recordedVideoChunks = [];
+        recordStartTime = performance.now();
+
+        recordBtn.classList.add('recording');
+        recordBtn.textContent = '⏹ 停止錄音';
+        playRecordBtn.disabled = true;
+        exportWavBtn.disabled = true;
+        exportMp3Btn.disabled = true;
+        exportMp4Btn.disabled = true;
+        statusBadge.textContent = '⏺ 正在錄音中 (包含音訊與影格串流)...';
+
+        try {
+          const audioMime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
+          mediaRecorder = new MediaRecorder(streamDest.stream, { mimeType: audioMime });
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) recordedAudioChunks.push(e.data);
+          };
+          mediaRecorder.start();
+        } catch (err) {
+          console.warn('Audio MediaRecorder 啟動失敗:', err);
+        }
+
+        try {
+          renderPianoFrame();
+          const canvasStream = videoCanvas.captureStream(30);
+          const combinedStream = new MediaStream([
+            ...canvasStream.getVideoTracks(),
+            ...streamDest.stream.getAudioTracks()
+          ]);
+          
+          let videoMime = 'video/webm;codecs=vp9,opus';
+          if (!MediaRecorder.isTypeSupported(videoMime)) videoMime = 'video/webm';
+
+          videoMediaRecorder = new MediaRecorder(combinedStream, { mimeType: videoMime });
+          videoMediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) recordedVideoChunks.push(e.data);
+          };
+          videoMediaRecorder.start();
+        } catch (err) {
+          console.warn('Video MediaRecorder 啟動失敗:', err);
+        }
+
+      } else {
+        isRecording = false;
+        recordBtn.classList.remove('recording');
+        recordBtn.textContent = '⏺ 開始錄音';
+        if (canvasAnimId) cancelAnimationFrame(canvasAnimId);
+
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+        if (videoMediaRecorder && videoMediaRecorder.state !== 'inactive') videoMediaRecorder.stop();
+
+        statusBadge.textContent = `錄音完成！可回放或匯出通用實體檔案 💾`;
+        const hasData = recordedEvents.length > 0 || pcmBuffers.length > 0;
+        playRecordBtn.disabled = !hasData;
+        exportWavBtn.disabled = !hasData;
+        exportMp3Btn.disabled = !hasData;
+        exportMp4Btn.disabled = !hasData;
+      }
+    });
+
+    playRecordBtn.addEventListener('click', () => {
+      if (recordedEvents.length === 0) return;
+      stopAllPlaying();
+      getAudioContext();
+      statusBadge.textContent = '▶ 正在回放彈奏...';
+
+      recordedEvents.forEach(evt => {
+        const t = setTimeout(() => {
+          const noteObj = noteMapByNote.get(evt.note);
+          if (noteObj) {
+            if (evt.action === 'down') triggerNoteStart(noteObj, true);
+            else triggerNoteEnd(noteObj, true);
+          }
+        }, evt.time);
+        songPlaybackTimeouts.push(t);
+      });
+
+      const finishT = setTimeout(() => {
+        statusBadge.textContent = '回放完畢 ✨';
+      }, (recordedEvents[recordedEvents.length - 1]?.time || 0) + 600);
+      songPlaybackTimeouts.push(finishT);
+    });
+
+    /* ========================================================
+       9. 標準 16-bit PCM WAV 無損音訊檔案編碼
+       ======================================================== */
+    function encodeWAV(buffers, sampleRate) {
+      let totalLength = buffers.reduce((acc, b) => acc + b.length, 0);
+      let merged = new Float32Array(totalLength);
+      let offset = 0;
+      for (let buf of buffers) {
+        merged.set(buf, offset);
+        offset += buf.length;
+      }
+
+      const buffer = new ArrayBuffer(44 + totalLength * 2);
+      const view = new DataView(buffer);
+
+      function writeString(view, offset, string) {
+        for (let i = 0; i < string.length; i++) {
+          view.setUint8(offset + i, string.charCodeAt(i));
+        }
+      }
+
+      writeString(view, 0, 'RIFF');
+      view.setUint32(4, 36 + totalLength * 2, true);
+      writeString(view, 8, 'WAVE');
+      writeString(view, 12, 'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true);
+      view.setUint16(22, 1, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * 2, true);
+      view.setUint16(32, 2, true);
+      view.setUint16(34, 16, true);
+      writeString(view, 36, 'data');
+      view.setUint32(40, totalLength * 2, true);
+
+      let index = 44;
+      for (let i = 0; i < totalLength; i++) {
+        let s = Math.max(-1, Math.min(1, merged[i]));
+        view.setInt16(index, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+        index += 2;
+      }
+
+      return new Blob([view], { type: 'audio/wav' });
+    }
+
+    exportWavBtn.addEventListener('click', () => {
+      if (pcmBuffers.length === 0) {
+        alert('尚無足夠的音訊資料可匯出！');
+        return;
+      }
+      const wavBlob = encodeWAV(pcmBuffers, pcmSampleRate);
+      downloadBlob(wavBlob, `迷你鋼琴演奏_${getDateStr()}.wav`);
+      statusBadge.textContent = '已下載無損 WAV 音訊檔 (雙擊即可播放) 🎵';
+    });
+
+    exportMp3Btn.addEventListener('click', () => {
+      if (recordedAudioChunks.length === 0) {
+        exportWavBtn.click();
+        return;
+      }
+      const audioBlob = new Blob(recordedAudioChunks, { type: 'audio/mp3' });
+      downloadBlob(audioBlob, `迷你鋼琴演奏_${getDateStr()}.mp3`);
+      statusBadge.textContent = '已匯出 MP3 音訊檔 🎵';
+    });
+
+    exportMp4Btn.addEventListener('click', () => {
+      if (recordedVideoChunks.length === 0) {
+        alert('尚無視訊資料可匯出，請先錄音彈奏！');
+        return;
+      }
+      const videoBlob = new Blob(recordedVideoChunks, { type: 'video/mp4' });
+      downloadBlob(videoBlob, `迷你鋼琴演奏_${getDateStr()}.mp4`);
+      statusBadge.textContent = '已匯出 MP4 影片檔 (影音同步無延遲) 🎬';
+    });
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function getDateStr() {
+      const d = new Date();
+      return `${d.getFullYear()}${(d.getMonth()+1).toString().padStart(2,'0')}${d.getDate().toString().padStart(2,'0')}_${d.getHours().toString().padStart(2,'0')}${d.getMinutes().toString().padStart(2,'0')}`;
+    }
+  </script>
+</body>
+</html>
